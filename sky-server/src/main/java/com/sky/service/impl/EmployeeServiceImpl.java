@@ -51,7 +51,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         //密码比对
         // 对密码进行md5加密，然后再进行比对
-        password=DigestUtils.md5DigestAsHex(password.getBytes());
+        password = DigestUtils.md5DigestAsHex(password.getBytes());
         if (!password.equals(employee.getPassword())) {
             //密码错误
             throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
@@ -68,6 +68,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     /**
      * 新增员工
+     *
      * @param employeeDTO
      * @return
      */
@@ -97,17 +98,60 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     /**
      * 员工分页查询
+     *
      * @param employeePageQueryDTO
      * @return
      */
-    public PageResult pageQuery(EmployeePageQueryDTO employeePageQueryDTO){
+    public PageResult pageQuery(EmployeePageQueryDTO employeePageQueryDTO) {
         //select * from employee limit 0,10
-        PageHelper.startPage(employeePageQueryDTO.getPage(),employeePageQueryDTO.getPageSize());
+        PageHelper.startPage(employeePageQueryDTO.getPage(), employeePageQueryDTO.getPageSize());
 
         Page<Employee> page = employeeMapper.pageQuery(employeePageQueryDTO);
-        long total=page.getTotal();
-        List<Employee> result=page.getResult();
-        return new PageResult(total,result);
+        long total = page.getTotal();
+        List<Employee> result = page.getResult();
+        return new PageResult(total, result);
     }
 
+    /**
+     * 启用禁用员工账号
+     *
+     * @param status
+     * @param id
+     * @return
+     */
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        //update employee set status = ? where id = ?
+
+        Employee employee = Employee.builder()
+                .status(status)
+                .id(id)
+                .build();
+        employeeMapper.update(employee);
+    }
+
+    /**
+     * 根据id查询员工
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public Employee getById(Long id) {
+        return employeeMapper.getById(id);
+    }
+
+    /**
+     * 编辑员工信息
+     *
+     * @param employeeDTO
+     */
+    @Override
+    public void update(EmployeeDTO employeeDTO) {
+        Employee employee = new Employee();
+        BeanUtils.copyProperties(employeeDTO, employee);
+        employee.setUpdateTime(LocalDateTime.now());
+        employee.setUpdateUser(BaseContext.getCurrentId());
+        employeeMapper.update(employee);
+    }
 }
